@@ -11,6 +11,22 @@ services:
       - php
     networks:
       - app-network
+  
+  db:
+    container_name: postgres
+    build:
+      context: .
+      dockerfile: docker/db/Dockerfile
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - app-network
+    volumes:
+      - ./docker/db:/docker-entrypoint-initdb.d
 
   php:
     build:
@@ -18,6 +34,24 @@ services:
       dockerfile: docker/php/Dockerfile
     volumes:
       - .:/app
+    networks:
+      - app-network
+
+  mailpit:
+    image: axllent/mailpit:latest
+    ports:
+      - "${MAILPIT_PORT:-8025}:8025"
+    networks:
+      - app-network
+
+  pgadmin-wdpai:
+    image: dpage/pgadmin4:latest
+    container_name: ${PGADMIN_CONTAINER_NAME:-pg-admin}
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
     networks:
       - app-network
 
